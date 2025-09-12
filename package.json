@@ -1,8 +1,12 @@
 {
   "name": "uniglobebot-proxy",
   "version": "1.0.0",
-  "type": "module",
+  "type": "commonjs",
+  "scripts": {
+    "dev": "vercel dev"
+  },
   "dependencies": {
+    "@google/generative-ai": "^0.1.3",
     "@supabase/supabase-js": "^2.44.2",
     "dotenv": "^16.4.5"
   }
