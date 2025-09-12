@@ -1,17 +1,20 @@
-import { createClient } from "@supabase/supabase-js";
+const { createClient } = require("@supabase/supabase-js");
 
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
 
-export default async function handler(req, res) {
-  if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
-
-  const { email, password } = req.body;
+module.exports = async (req, res) => {
   try {
+    if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
+
+    const { email, password } = req.body || {};
+    if (!email || !password) return res.status(400).json({ error: "Email and password required" });
+
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) return res.status(400).json({ error: error.message });
-    res.json({ user: data.user, session: data.session });
+
+    return res.status(200).json({ user: data.user, session: data.session });
   } catch (err) {
     console.error("Login error:", err);
-    res.status(500).json({ error: "Login failed" });
+    return res.status(500).json({ error: "Internal server error" });
   }
-}
+};
