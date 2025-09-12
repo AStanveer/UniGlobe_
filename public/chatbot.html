@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>UniGlobe - AI Assistant</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700&display=swap');
+    body { font-family: 'Poppins', sans-serif; }
+
+    /* Gradient class */
+    .gradient-bg {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+
+    /* Navigation hover effect */
+    .nav-btn {
+      position: relative;
+      transition: color 0.3s ease;
+    }
+    .nav-btn::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      bottom: -4px;
+      width: 0;
+      height: 3px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      transition: width 0.3s ease;
+      border-radius: 2px;
+    }
+    .nav-btn:hover::after {
+      width: 100%;
+    }
+    .nav-btn:hover {
+      color: #764ba2;
+    }
+
+    /* UniGlobe logo style */
+    .site-logo {
+      font-size: 1.8rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    /* Buttons */
+    .primary-btn {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: #fff;
+      font-weight: 600;
+      transition: opacity 0.3s ease;
+    }
+    .primary-btn:hover { opacity: 0.9; }
+
+    /* Chatbox container */
+    .chat-box {
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      border-radius: 1rem;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.08);
+      overflow: hidden;
+    }
+
+    /* Chat bubbles */
+    .bubble-user {
+      background: linear-gradient(to right, #4f46e5, #7c3aed);
+      color: #fff;
+      border-radius: 1rem 1rem 0.25rem 1rem;
+      padding: .85rem 1rem;
+      font-size: 0.95rem;
+      font-weight: 500;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    }
+
+    .bubble-bot {
+      background: #f9f9ff;
+      color: #111827;
+      border-radius: 1rem 1rem 1rem 0.25rem;
+      padding: .85rem 1rem;
+      font-size: 0.95rem;
+      border: 1px solid #e0e0f0;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+    /* Input bar */
+    .chat-input {
+      border: 1px solid #d1d5db;
+      border-radius: 0.75rem;
+      padding: 0.75rem 1rem;
+      outline: none;
+      font-size: 0.95rem;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+    .chat-input:focus {
+      border-color: #764ba2;
+      box-shadow: 0 0 0 3px rgba(118,75,162,0.25);
+    }
+
+    /* Send button */
+    .send-btn {
+      background: linear-gradient(to right, #4f46e5, #7c3aed);
+      color: #fff;
+      font-weight: 600;
+      border-radius: 0.75rem;
+      padding: 0.6rem 1.25rem;
+      transition: opacity 0.3s ease;
+    }
+    .send-btn:hover { opacity: 0.9; }
+  </style>
+</head>
+<body class="bg-gray-50">
+
+  <!-- Navigation -->
+  <nav class="bg-white shadow-md">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between items-center h-16">
+        <div class="flex items-center">
+          <h1 class="site-logo">UniGlobe</h1>
+        </div>
+        <div class="hidden md:flex items-center space-x-8">
+          <a href="home.html" class="nav-btn text-gray-700 font-medium">Home</a>
+          <a href="community.html" class="nav-btn text-gray-700 font-medium">Community</a>
+          <a href="chatbot.html" class="nav-btn text-gray-700 font-medium">AI Assistant</a>
+          <a href="resources.html" class="nav-btn text-gray-700 font-medium">Resources</a>
+          <!-- Notifications -->
+          <button class="relative" onclick="toggleNotifications()">
+            <span class="material-icons text-gray-600">notifications</span>
+            <span class="absolute top-0 right-0 bg-red-500 text-white text-xs px-1 rounded-full">3</span>
+          </button>
+          <!-- Logout -->
+          <button onclick="logout()" title="Logout">
+            <span class="material-icons text-gray-600">logout</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <main class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <header class="mb-6">
+      <h1 class="text-3xl font-bold text-gray-900">🤖 AI Relocation Assistant</h1>
+      <p class="text-gray-600 mt-1">Ask anything about visas, housing, banking, culture, or academics.</p>
+    </header>
+
+    <section class="chat-box p-0 overflow-hidden">
+      <div id="chat-messages" class="h-[560px] overflow-y-auto p-4 space-y-4">
+        <div class="flex items-start gap-2">
+          <div class="bubble-bot px-4 py-3 rounded-2xl max-w-[80%]">
+            <p class="text-sm">
+              Hi! I’m the UniGlobe assistant. I can answer general relocation questions. How can I help?
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="border-t border-gray-200 p-4">
+        <div class="flex gap-2">
+          <input id="chat-input" type="text"
+            placeholder="Ask about visas, housing, banking, culture, academics..."
+            class="chat-input flex-1"/>
+          <button id="send-btn" class="send-btn font-semibold">Send</button>
+        </div>
+        <div class="mt-3 flex flex-wrap gap-2">
+          <button class="text-xs px-3 py-1 rounded-full border border-gray-300 hover:bg-gray-100"
+            onclick="quickAsk('What documents do I need for a student visa to Germany?')">Visa docs (DE)</button>
+          <button class="text-xs px-3 py-1 rounded-full border border-gray-300 hover:bg-gray-100"
+            onclick="quickAsk('How can I find affordable student housing near ITMO?')">Housing (ITMO)</button>
+          <button class="text-xs px-3 py-1 rounded-full border border-gray-300 hover:bg-gray-100"
+            onclick="quickAsk('What are typical monthly expenses for students in St. Petersburg?')">Budget (RU)</button>
+          <button class="text-xs px-3 py-1 rounded-full border border-gray-300 hover:bg-gray-100"
+            onclick="quickAsk('Tips to adapt to classes and grading in Ecuador?')">Academics (EC)</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Notification Popup -->
+  <div id="notification-popup" class="hidden fixed top-16 right-6 bg-white shadow-lg rounded-lg p-4 w-72 border border-gray-200 z-50">
+    <h4 class="font-semibold text-gray-800 mb-2">Notifications</h4>
+    <ul class="text-sm text-gray-600 space-y-2">
+      <li>✅ Your post has a new reply</li>
+      <li>📌 New resource added: Housing Guide</li>
+    </ul>
+  </div>
+
+  <script>
+    const messagesEl = document.getElementById('chat-messages');
+    const inputEl = document.getElementById('chat-input');
+    const sendBtn = document.getElementById('send-btn');
+
+    function addUserMessage(text) {
+      const wrap = document.createElement('div');
+      wrap.className = 'flex justify-end';
+      wrap.innerHTML = `<div class="bubble-user max-w-[75%]">${text}</div>`;
+      messagesEl.appendChild(wrap);
+      scrollToBottom();
+    }
+
+    function addBotMessage(text) {
+      const wrap = document.createElement('div');
+      wrap.className = 'flex justify-start';
+      wrap.innerHTML = `<div class="bubble-bot max-w-[75%]">${text}</div>`;
+      messagesEl.appendChild(wrap);
+      scrollToBottom();
+    }
+
+    function scrollToBottom() {
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+    }
+
+    async function sendMessage() {
+      const text = inputEl.value.trim();
+      if (!text) return;
+      addUserMessage(text);
+      inputEl.value = "";
+
+      // Bot typing indicator
+      const typingEl = document.createElement('div');
+      typingEl.className = 'flex justify-start';
+      typingEl.innerHTML = `<div class="bubble-bot max-w-[75%]">...</div>`;
+      messagesEl.appendChild(typingEl);
+      scrollToBottom();
+
+      try {
+        const res = await fetch("/api/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ message: text })
+        });
+        const data = await res.json();
+        typingEl.remove();
+        addBotMessage(data.reply || "⚠️ No reply from server.");
+      } catch (err) {
+        typingEl.remove();
+        addBotMessage("⚠️ Error connecting to server.");
+        console.error(err);
+      }
+    }
+
+    inputEl.addEventListener('keydown', e => { if (e.key === 'Enter') sendMessage(); });
+    sendBtn.addEventListener('click', sendMessage);
+
+    document.addEventListener("DOMContentLoaded", () => {
+      if (!localStorage.getItem("loggedIn")) {
+        window.location.href = "index.html";
+      }
+    });
+
+    function logout() {
+      localStorage.removeItem("loggedIn");
+      window.location.href = "index.html";
+    }
+  </script>
+</body>
+</html>

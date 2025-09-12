@@ -1,0 +1,22 @@
+[
+  {
+    "topic": "visa_germany",
+    "question": "What documents do I need for a student visa to Germany?",
+    "answer": "You typically need: a valid passport, proof of university admission, proof of financial resources (~11,208 EUR per year in a blocked account), health insurance, academic transcripts, and a completed application form."
+  },
+  {
+    "topic": "housing_itmo",
+    "question": "How can I find affordable student housing near ITMO?",
+    "answer": "You can apply for ITMO university dormitories, join student Facebook/Telegram groups, or check rental websites like CIAN. Dorms are cheapest, while shared apartments are more flexible but costlier."
+  },
+  {
+    "topic": "budget_russia",
+    "question": "What are typical monthly expenses for students in St. Petersburg?",
+    "answer": "On average: Housing (150–300 EUR dorm, 300–500 EUR apartment), Food (150–250 EUR), Transport (20–30 EUR), Internet/Phone (10–15 EUR), Entertainment (50–100 EUR)."
+  },
+  {
+    "topic": "academics_ecuador",
+    "question": "Tips to adapt to classes and grading in Ecuador?",
+    "answer": "Expect more oral participation, grading often combines exams and group work, and professors encourage building personal relationships. Spanish proficiency helps a lot!"
+  }
+]

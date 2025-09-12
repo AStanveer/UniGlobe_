@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UniGlobe - Resources</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700&display=swap');
+    body { font-family: 'Poppins', sans-serif; }
+
+    /* Gradient class */
+    .gradient-bg {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+
+    /* Navigation hover effect */
+    .nav-btn {
+      position: relative;
+      transition: color 0.3s ease;
+    }
+    .nav-btn::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      bottom: -4px;
+      width: 0;
+      height: 3px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      transition: width 0.3s ease;
+      border-radius: 2px;
+    }
+    .nav-btn:hover::after {
+      width: 100%;
+    }
+    .nav-btn:hover {
+      color: #764ba2; /* bright white on hover */
+    }
+
+    /* UniGlobe logo style */
+    .site-logo {
+      font-size: 1.8rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+  </style>
+</head>
+<body class="bg-gray-50">
+
+  <!-- Navigation -->
+  <nav class="bg-white shadow-md">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between items-center h-16">
+        <div class="flex items-center">
+          <h1 class="site-logo">UniGlobe</h1>
+        </div>
+        <div class="hidden md:flex items-center space-x-8">
+          <a href="home.html" class="nav-btn text-gray-700 font-medium">Home</a>
+          <a href="community.html" class="nav-btn text-gray-700 font-medium">Community</a>
+          <a href="chatbot.html" class="nav-btn text-gray-700 font-medium">AI Assistant</a>
+          <a href="resources.html" class="nav-btn text-gray-700 font-medium">Resources</a>
+          
+          <!-- Notifications -->
+          <button class="relative" onclick="toggleNotifications()">
+            <span class="material-icons text-gray-600">notifications</span>
+            <span class="absolute top-0 right-0 bg-red-500 text-white text-xs px-1 rounded-full">3</span>
+          </button>
+  
+          <!-- Logout -->
+          <button onclick="logout()" title="Logout">
+            <span class="material-icons text-gray-600">logout</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </nav>
+  
+
+  <!-- Content -->
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <h2 class="text-3xl font-bold text-gray-900 text-center mb-12">Study Abroad Resources</h2>
+
+    <div class="grid gap-8 md:grid-cols-2 lg:grid-cols-2">
+      
+      <!-- Checklist -->
+      <a href="checklist.html" class="card-hover bg-white rounded-lg shadow-md p-8 block text-center">
+        <div class="text-4xl mb-4">📋</div>
+        <h3 class="text-xl font-semibold mb-3">Pre-Departure Checklist</h3>
+        <p class="text-gray-600">Step-by-step essentials to prepare before leaving for your study destination.</p>
+      </a>
+
+      <!-- Budget Planner -->
+      <a href="budget.html" class="card-hover bg-white rounded-lg shadow-md p-8 block text-center">
+        <div class="text-4xl mb-4">💰</div>
+        <h3 class="text-xl font-semibold mb-3">Budget Planner</h3>
+        <p class="text-gray-600">Plan your finances and track expenses easily as an international student.</p>
+      </a>
+
+      <!-- Country Guides -->
+      <a href="countries.html" class="card-hover bg-white rounded-lg shadow-md p-8 block text-center">
+        <div class="text-4xl mb-4">🌍</div>
+        <h3 class="text-xl font-semibold mb-3">Country Guides</h3>
+        <p class="text-gray-600">Explore detailed guides about culture, academics, and daily life abroad.</p>
+      </a>
+
+      <!-- Mental Health Wellbeing -->
+      <a href="wellbeing.html" class="card-hover bg-white rounded-lg shadow-md p-8 block text-center">
+        <div class="text-4xl mb-4">🧠</div>
+        <h3 class="text-xl font-semibold mb-3">Mental Health Wellbeing</h3>
+        <p class="text-gray-600">Guidance and resources to support your mental health and wellbeing while studying abroad.</p>
+      </a>
+
+    </div>
+  </div>
+    <!-- Notification Popup -->
+  <div id="notification-popup" class="hidden fixed top-16 right-6 bg-white shadow-lg rounded-lg p-4 w-72 border border-gray-200 z-50">
+    <h4 class="font-semibold text-gray-800 mb-2">Notifications</h4>
+    <ul class="text-sm text-gray-600 space-y-2">
+      <li>✅ Your post has a new reply</li>
+      <li>📌 New resource added: Housing Guide</li>
+    </ul>
+  </div>
+
+  <script>
+    function toggleNotifications() {
+      const popup = document.getElementById("notification-popup");
+      popup.classList.toggle("hidden");
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      const loggedIn = localStorage.getItem("loggedIn");
+      if (!loggedIn) {
+        window.location.href = "index.html";
+      }
+    });
+  
+    function logout() {
+      localStorage.removeItem("loggedIn");
+      window.location.href = "index.html";
+    }
+  </script>
+
+</body>
+</html>

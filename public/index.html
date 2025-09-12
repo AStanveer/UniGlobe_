@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - UniGlobe</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 flex items-center justify-center h-screen">
+  <div class="bg-white p-8 rounded-xl shadow-md w-full max-w-md">
+    <h2 class="text-2xl font-bold mb-6 text-center">Welcome Back</h2>
+    
+    <form id="loginForm" class="space-y-4">
+      <input type="email" id="email" placeholder="Email" required
+        class="w-full px-4 py-2 border rounded-lg focus:ring focus:ring-purple-300">
+      
+      <input type="password" id="password" placeholder="Password" required
+        class="w-full px-4 py-2 border rounded-lg focus:ring focus:ring-purple-300">
+
+      <button type="submit" class="w-full bg-purple-600 text-white py-2 rounded-lg hover:bg-purple-700">
+        Log In
+      </button>
+    </form>
+
+    <p class="text-sm text-gray-600 mt-4 text-center">
+      Don’t have an account? <a href="signup.html" class="text-purple-600 font-semibold">Sign Up</a>
+    </p>
+  </div>
+
+  <script>
+    document.getElementById("loginForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+
+      try {
+        const res = await fetch("/api/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password })
+        });
+
+        const data = await res.json();
+        if (res.ok) {
+          // Save session to localStorage
+          localStorage.setItem("loggedIn", "true");
+          localStorage.setItem("user", JSON.stringify(data.user));
+
+          alert("Login successful!");
+          window.location.href = "home.html";
+        } else {
+          alert("Error: " + data.error);
+        }
+      } catch (err) {
+        console.error(err);
+        alert("Something went wrong.");
+      }
+    });
+  </script>
+</body>
+</html>

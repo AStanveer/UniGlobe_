@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign Up - UniGlobe</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 flex items-center justify-center h-screen">
+  <div class="bg-white p-8 rounded-xl shadow-md w-full max-w-md">
+    <h2 class="text-2xl font-bold mb-6 text-center">Create Account</h2>
+    
+    <form id="signupForm" class="space-y-4">
+      <input type="email" id="email" placeholder="Email" required
+        class="w-full px-4 py-2 border rounded-lg focus:ring focus:ring-purple-300">
+      
+      <input type="password" id="password" placeholder="Password" required
+        class="w-full px-4 py-2 border rounded-lg focus:ring focus:ring-purple-300">
+
+      <button type="submit" class="w-full bg-purple-600 text-white py-2 rounded-lg hover:bg-purple-700">
+        Sign Up
+      </button>
+    </form>
+
+    <p class="text-sm text-gray-600 mt-4 text-center">
+      Already have an account? <a href="login.html" class="text-purple-600 font-semibold">Log In</a>
+    </p>
+  </div>
+
+  <script>
+    document.getElementById("signupForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+
+      try {
+        const res = await fetch("/api/signup", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password })
+        });
+
+        const data = await res.json();
+        if (res.ok) {
+          alert("Signup successful! Please log in.");
+          window.location.href = "login.html";
+        } else {
+          alert("Error: " + data.error);
+        }
+      } catch (err) {
+        console.error(err);
+        alert("Something went wrong.");
+      }
+    });
+  </script>
+</body>
+</html>
