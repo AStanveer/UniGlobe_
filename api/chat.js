@@ -1,37 +1,47 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
-import fs from "fs";
+const { GoogleGenerativeAI } = require("@google/generative-ai");
+const fs = require("fs");
+const path = require("path");
 
-const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY);
-const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+// Load knowledge base
+const kbPath = path.join(__dirname, "../knowledge.json");
+const knowledgeBase = JSON.parse(fs.readFileSync(kbPath, "utf-8"));
 
-// Load knowledge base once
-const knowledgeBase = JSON.parse(fs.readFileSync("knowledge.json", "utf-8"));
 function findRelevantAnswer(userMessage) {
   const lowerMsg = userMessage.toLowerCase();
   for (const item of knowledgeBase) {
-    if (lowerMsg.includes(item.topic.split("_")[0]) || lowerMsg.includes(item.topic.split("_")[1])) {
+    if (
+      (item.topic.split("_")[0] && lowerMsg.includes(item.topic.split("_")[0])) ||
+      (item.topic.split("_")[1] && lowerMsg.includes(item.topic.split("_")[1]))
+    ) {
       return item.answer;
     }
   }
   return null;
 }
 
-export default async function handler(req, res) {
-  if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
+const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY);
+const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
+module.exports = async (req, res) => {
   try {
-    const { message } = req.body;
+    if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
 
+    const { message } = req.body || {};
+    if (!message) return res.status(400).json({ error: "Message is required" });
+
+    // Check knowledge base
     const kbAnswer = findRelevantAnswer(message);
-    if (kbAnswer) return res.json({ answer: kbAnswer });
+    if (kbAnswer) return res.status(200).json({ reply: kbAnswer });
 
+    // Use Gemini
     const result = await model.generateContent({
-      contents: [{ role: "user", parts: [{ text: `You are UniGlobe, assistant for international students. Question: ${message}` }] }]
+      contents: [{ role: "user", parts: [{ text: `You are UniGlobe assistant. Question: ${message}` }] }]
     });
 
-    res.json({ answer: result.response.text() });
+    const reply = result.response.text();
+    return res.status(200).json({ reply });
   } catch (err) {
-    console.error("Chat error:", err);
-    res.status(500).json({ error: "Something went wrong" });
+    console.error("Chatbot error:", err);
+    return res.status(500).json({ error: "Internal server error" });
   }
-}
+};
