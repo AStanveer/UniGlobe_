@@ -147,189 +147,170 @@
     </ul>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/supabase.min.js"></script>
-  <script>
-document.addEventListener("DOMContentLoaded", async () => {
-  const { data: { session }, error } = await supabase.auth.getSession();
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/supabase.min.js"></script>
+<script>
+  // --- Supabase Client ---
+  const supabase = window.supabase.createClient(
+    "YOUR_SUPABASE_URL",
+    "YOUR_SUPABASE_ANON_KEY"
+  );
 
-  if (error) {
-    console.error("Error fetching session:", error);
-    window.location.href = "index.html";
-    return;
-  }
+  let currentSession = null;
 
-  if (!session) {
-    // No active session, redirect to login
-    window.location.href = "index.html";
-    return;
-  }
+  // --- Init ---
+  document.addEventListener("DOMContentLoaded", async () => {
+    const { data: { session }, error } = await supabase.auth.getSession();
 
-  // You can now safely get user info
-  const user = session.user;
-  console.log("Logged in as:", user.email);
-
-  // Show "My Posts" button if logged in
-  document.getElementById("my-posts-btn").classList.remove("hidden");
-
-  // Load posts
-  loadPosts("all", user.email);
-});
-</script>
-
-  <script>
-    // --- Render a Post ---
-    function renderPost(post) {
-      return `
-        <div class="bg-white rounded-lg shadow-md p-6">
-          <div class="flex justify-between items-center mb-3">
-            <span class="text-sm bg-indigo-100 text-indigo-800 px-2 py-1 rounded-full">${post.category}</span>
-            <span class="text-sm text-gray-500">${new Date(post.created_at).toLocaleString()}</span>
-          </div>
-          <h3 class="text-lg font-semibold mb-2">${post.title}</h3>
-          <p class="text-gray-600 mb-4">${post.content}</p>
-          <div class="flex justify-between items-center">
-            <span class="text-sm text-gray-500">${post.author}</span>
-          </div>
-  
-          <!-- Replies -->
-          <div class="mt-4 space-y-2">
-            ${(post.replies || []).map(r => `
-              <div class="bg-gray-50 border-l-4 border-indigo-500 p-2 rounded">
-                <span class="font-semibold">${r.author}:</span> ${r.text}
-              </div>
-            `).join('')}
-          </div>
-  
-          <!-- Add Reply -->
-          <form onsubmit="addReply(event, ${post.id})" class="mt-3 flex space-x-2">
-            <input type="text" id="reply-input-${post.id}" placeholder="Write a reply..." 
-              class="flex-1 border rounded-lg px-3 py-1 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-            <button type="submit" class="bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-3 py-1 rounded-lg">Reply</button>
-          </form>
-        </div>
-      `;
-    }
-  
-    // --- Load Posts via API ---
-    async function loadPosts(filter = "all", myEmail = null) {
-      try {
-        const res = await fetch("/api/posts");
-        const { posts } = await res.json();
-  
-        let filtered = posts;
-        if (filter !== "all" && filter !== "my") {
-          filtered = posts.filter(p => p.category === filter);
-        }
-        if (filter === "my" && myEmail) {
-          filtered = posts.filter(p => p.author === myEmail);
-        }
-  
-        const container = document.getElementById("posts-container");
-        container.innerHTML = filtered.length
-          ? filtered.map(renderPost).join("")
-          : `<p class="text-gray-500 italic">No posts yet.</p>`;
-      } catch (err) {
-        console.error("Error loading posts:", err);
-      }
-    }
-  
-    // --- Add Reply via API ---
-    async function addReply(event, postId) {
-      event.preventDefault();
-      const input = document.getElementById(`reply-input-${postId}`);
-      const text = input.value.trim();
-      if (!text) return;
-  
-      const userEmail = localStorage.getItem("userEmail");
-      if (!userEmail) {
-        alert("You must be logged in to reply.");
-        return;
-      }
-  
-      try {
-        await fetch("/api/replies", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ postId, author: userEmail, text })
-        });
-        input.value = "";
-        loadPosts();
-      } catch (err) {
-        console.error("Error adding reply:", err);
-      }
-    }
-  
-    // --- Create New Post via API ---
-    async function createPost(event) {
-      event.preventDefault();
-      const category = document.getElementById("post-category").value;
-      const title = document.getElementById("post-title").value;
-      const content = document.getElementById("post-content").value;
-  
-      const userEmail = localStorage.getItem("userEmail");
-      if (!userEmail) {
-        alert("You must be logged in to post.");
-        return;
-      }
-  
-      try {
-        await fetch("/api/posts", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ title, content, category, author: userEmail })
-        });
-        hideNewPostModal();
-        loadPosts();
-      } catch (err) {
-        console.error("Error creating post:", err);
-      }
-    }
-  
-    // --- Filters ---
-    async function filterPosts(category) {
-      const userEmail = localStorage.getItem("userEmail");
-      if (category === "my" && !userEmail) {
-        document.getElementById("posts-container").innerHTML = `
-          <p class="text-gray-500 italic">⚠️ Please <a href="index.html" class="text-indigo-600 underline">login</a> to view your posts.</p>
-        `;
-        return;
-      }
-      loadPosts(category, userEmail);
-    }
-  
-    // --- UI Helpers ---
-    function showNewPostModal() {
-      document.getElementById("new-post-modal").classList.remove("hidden");
-      document.getElementById("new-post-modal").classList.add("flex");
-    }
-    function hideNewPostModal() {
-      document.getElementById("new-post-modal").classList.add("hidden");
-    }
-    function toggleNotifications() {
-      document.getElementById("notification-popup").classList.toggle("hidden");
-    }
-  
-    // --- Logout ---
-    function logout() {
-      localStorage.removeItem("userEmail");
+    if (error) {
+      console.error("Error fetching session:", error);
       window.location.href = "index.html";
+      return;
     }
-  
-    // --- Init ---
-    document.addEventListener("DOMContentLoaded", () => {
-      const userEmail = localStorage.getItem("userEmail");
-      if (!userEmail) {
-        window.location.href = "index.html";
-        return;
+
+    if (!session) {
+      window.location.href = "index.html";
+      return;
+    }
+
+    currentSession = session;
+    console.log("Logged in as:", session.user.email);
+
+    // Show "My Posts"
+    document.getElementById("my-posts-btn").classList.remove("hidden");
+
+    // Load posts
+    loadPosts("all");
+  });
+
+  // --- Render a Post ---
+  function renderPost(post) {
+    return `
+      <div class="bg-white rounded-lg shadow-md p-6">
+        <div class="flex justify-between items-center mb-3">
+          <span class="text-sm bg-indigo-100 text-indigo-800 px-2 py-1 rounded-full">${post.category}</span>
+          <span class="text-sm text-gray-500">${new Date(post.created_at).toLocaleString()}</span>
+        </div>
+        <h3 class="text-lg font-semibold mb-2">${post.title}</h3>
+        <p class="text-gray-600 mb-4">${post.content}</p>
+        <div class="flex justify-between items-center">
+          <span class="text-sm text-gray-500">${post.author}</span>
+        </div>
+
+        <!-- Replies -->
+        <div class="mt-4 space-y-2">
+          ${(post.replies || []).map(r => `
+            <div class="bg-gray-50 border-l-4 border-indigo-500 p-2 rounded">
+              <span class="font-semibold">${r.author}:</span> ${r.text}
+            </div>
+          `).join('')}
+        </div>
+
+        <!-- Add Reply -->
+        <form onsubmit="addReply(event, ${post.id})" class="mt-3 flex space-x-2">
+          <input type="text" id="reply-input-${post.id}" placeholder="Write a reply..." 
+            class="flex-1 border rounded-lg px-3 py-1 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+          <button type="submit" class="bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-3 py-1 rounded-lg">Reply</button>
+        </form>
+      </div>
+    `;
+  }
+
+  // --- Load Posts ---
+  async function loadPosts(filter = "all") {
+    try {
+      const res = await fetch("/api/posts", {
+        headers: {
+          "Authorization": `Bearer ${currentSession.access_token}`
+        }
+      });
+      const { posts } = await res.json();
+
+      let filtered = posts;
+      if (filter !== "all" && filter !== "my") {
+        filtered = posts.filter(p => p.category === filter);
       }
-  
-      // Show "My Posts" only if logged in
-      document.getElementById("my-posts-btn").classList.remove("hidden");
-  
-      loadPosts("all");
-    });
+      if (filter === "my") {
+        filtered = posts.filter(p => p.author === currentSession.user.email);
+      }
+
+      const container = document.getElementById("posts-container");
+      container.innerHTML = filtered.length
+        ? filtered.map(renderPost).join("")
+        : `<p class="text-gray-500 italic">No posts yet.</p>`;
+    } catch (err) {
+      console.error("Error loading posts:", err);
+    }
+  }
+
+  // --- Add Reply ---
+  async function addReply(event, postId) {
+    event.preventDefault();
+    const input = document.getElementById(`reply-input-${postId}`);
+    const text = input.value.trim();
+    if (!text) return;
+
+    try {
+      await fetch("/api/replies", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${currentSession.access_token}`
+        },
+        body: JSON.stringify({ postId, text })
+      });
+      input.value = "";
+      loadPosts();
+    } catch (err) {
+      console.error("Error adding reply:", err);
+    }
+  }
+
+  // --- Create New Post ---
+  async function createPost(event) {
+    event.preventDefault();
+    const category = document.getElementById("post-category").value;
+    const title = document.getElementById("post-title").value;
+    const content = document.getElementById("post-content").value;
+
+    try {
+      await fetch("/api/posts", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${currentSession.access_token}`
+        },
+        body: JSON.stringify({ title, content, category })
+      });
+      hideNewPostModal();
+      loadPosts();
+    } catch (err) {
+      console.error("Error creating post:", err);
+    }
+  }
+
+  // --- Filters ---
+  function filterPosts(category) {
+    loadPosts(category);
+  }
+
+  // --- UI Helpers ---
+  function showNewPostModal() {
+    document.getElementById("new-post-modal").classList.remove("hidden");
+    document.getElementById("new-post-modal").classList.add("flex");
+  }
+  function hideNewPostModal() {
+    document.getElementById("new-post-modal").classList.add("hidden");
+  }
+  function toggleNotifications() {
+    document.getElementById("notification-popup").classList.toggle("hidden");
+  }
+
+  // --- Logout ---
+  async function logout() {
+    await supabase.auth.signOut();
+    window.location.href = "index.html";
+  }
   </script>
-  
 
 </body>
 </html>
