@@ -1,336 +1,106 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>UniGlobe - Community Forum</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700&display=swap');
-    body { font-family: 'Poppins', sans-serif; }
-
-    /* Gradient header/logo */
-    .site-logo {
-      font-size: 1.8rem;
-      font-weight: 700;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-
-    .nav-btn {
-      position: relative;
-      transition: color 0.3s ease;
-    }
-    .nav-btn::after {
-      content: '';
-      position: absolute;
-      left: 0;
-      bottom: -4px;
-      width: 0;
-      height: 3px;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      transition: width 0.3s ease;
-      border-radius: 2px;
-    }
-    .nav-btn:hover::after {
-      width: 100%;
-    }
-    .nav-btn:hover {
-      color: #4f46e5;
-    }
-  </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Community</title>
+  <script src="https://unpkg.com/@supabase/supabase-js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 </head>
-<body class="bg-gray-50">
+<body class="bg-gray-100">
+  <!-- Header -->
+  <header class="bg-gradient-to-r from-indigo-500 to-purple-600 text-white p-4 flex justify-between items-center shadow-lg">
+    <h1 class="text-2xl font-bold">Community Forum</h1>
+    <button onclick="logout()" class="bg-red-500 px-4 py-2 rounded-lg hover:bg-red-600">Logout</button>
+  </header>
 
-  <!-- Navigation -->
-  <nav class="bg-white shadow-md">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="flex justify-between items-center h-16">
-        <div class="flex items-center">
-          <h1 class="site-logo">UniGlobe</h1>
-        </div>
-        <div class="hidden md:flex items-center space-x-8">
-          <a href="home.html" class="nav-btn text-gray-700 font-medium">Home</a>
-          <a href="community.html" class="nav-btn text-gray-700 font-medium">Community</a>
-          <a href="chatbot.html" class="nav-btn text-gray-700 font-medium">AI Assistant</a>
-          <a href="resources.html" class="nav-btn text-gray-700 font-medium">Resources</a>
-          
-          <!-- Notifications -->
-          <button class="relative" onclick="toggleNotifications()">
-            <span class="material-icons text-gray-600">notifications</span>
-            <span class="absolute top-0 right-0 bg-red-500 text-white text-xs px-1 rounded-full">3</span>
-          </button>
-  
-          <!-- Logout -->
-          <button onclick="logout()" title="Logout">
-            <span class="material-icons text-gray-600">logout</span>
-          </button>
-        </div>
-      </div>
+  <!-- New Post Form -->
+  <main class="max-w-4xl mx-auto mt-8 p-6 bg-white rounded-lg shadow-md">
+    <h2 class="text-xl font-semibold mb-4">Create a Post</h2>
+    <form id="post-form" onsubmit="createPost(event)">
+      <textarea id="post-content" class="w-full border p-2 rounded-lg mb-4" rows="3" placeholder="Share your thoughts..."></textarea>
+      <button type="submit" class="bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-6 py-2 rounded-lg font-semibold hover:opacity-90 transition-opacity">Post</button>
+    </form>
+  </main>
+
+  <!-- Posts Feed -->
+  <section class="max-w-4xl mx-auto mt-8 p-6 bg-white rounded-lg shadow-md">
+    <h2 class="text-xl font-semibold mb-4">Recent Posts</h2>
+    <div id="posts-container" class="space-y-6">
+      <!-- Posts will be loaded here -->
     </div>
-  </nav>
-  
+  </section>
 
-  <!-- Community Section -->
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-    <div class="flex justify-between items-center mb-8">
-      <h2 class="text-3xl font-bold text-gray-900">Community Forum</h2>
-      <button onclick="showNewPostModal()" class="bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-6 py-2 rounded-lg font-semibold hover:opacity-90 transition-opacity">+ New Post</button>
-    </div>
+  <script>
+    // ✅ Supabase Init
+    const { createClient } = supabase;
+    const supabaseClient = createClient("https://bshfxwbxtitdpxdvtguz.supabase.co", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJzaGZ4d2J4dGl0ZHB4ZHZ0Z3V6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc2MjEwOTIsImV4cCI6MjA3MzE5NzA5Mn0.4oJ-K75YuRTsp9PZE5V-zq49NNBD0p-zygP-8QVan84");
 
-    <div class="grid lg:grid-cols-4 gap-7">
-      <!-- Categories -->
-      <div class="lg:col-span-1">
-        <div class="bg-white rounded-lg shadow-md p-6">
-          <h3 class="font-semibold mb-4">Categories</h3>
-          <div class="space-y-2">
-            <button onclick="filterPosts('all')" class="category-btn w-full text-left px-3 py-2 rounded hover:bg-gray-100 transition-colors">All Posts</button>
-            <button onclick="filterPosts('housing')" class="category-btn w-full text-left px-3 py-2 rounded hover:bg-gray-100 transition-colors">🏠 Housing</button>
-            <button onclick="filterPosts('visa')" class="category-btn w-full text-left px-3 py-2 rounded hover:bg-gray-100 transition-colors">📋 Visa & Legal</button>
-            <button onclick="filterPosts('social')" class="category-btn w-full text-left px-3 py-2 rounded hover:bg-gray-100 transition-colors">🎉 Social & Events</button>
-            <button onclick="filterPosts('academic')" class="category-btn w-full text-left px-3 py-2 rounded hover:bg-gray-100 transition-colors">📖 Academic</button>
-            <button onclick="filterPosts('general')" class="category-btn w-full text-left px-3 py-2 rounded hover:bg-gray-100 transition-colors">💬 General</button>
-            
-            <!-- My Posts (only visible when logged in) -->
-            <div id="my-posts-btn" class="hidden">
-              <button onclick="filterPosts('my')" class="category-btn w-full text-left px-3 py-2 rounded hover:bg-gray-100 transition-colors">📝 My Posts</button>
-            </div>
-          </div>
-        </div>
-      </div>
+    let currentSession = null;
 
-      <!-- Posts -->
-      <div class="lg:col-span-3">
-        <div id="posts-container" class="space-y-4"></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- New Post Modal -->
-  <div id="new-post-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
-    <div class="bg-white rounded-lg p-6 w-full max-w-md mx-4">
-      <h3 class="text-xl font-semibold mb-4">Create New Post</h3>
-      <form onsubmit="createPost(event)">
-        <div class="mb-4">
-          <label class="block text-sm font-medium text-gray-700 mb-2">Category</label>
-          <select id="post-category" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-            <option value="general">General</option>
-            <option value="housing">Housing</option>
-            <option value="visa">Visa & Legal</option>
-            <option value="social">Social & Events</option>
-            <option value="academic">Academic</option>
-          </select>
-        </div>
-        <div class="mb-4">
-          <label class="block text-sm font-medium text-gray-700 mb-2">Title</label>
-          <input type="text" id="post-title" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" required>
-        </div>
-        <div class="mb-4">
-          <label class="block text-sm font-medium text-gray-700 mb-2">Content</label>
-          <textarea id="post-content" rows="4" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" required></textarea>
-        </div>
-        <div class="flex justify-end space-x-3">
-          <button type="button" onclick="hideNewPostModal()" class="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors">Cancel</button>
-          <button type="submit" class="bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-6 py-2 rounded-lg font-semibold hover:opacity-90 transition-opacity">Post</button>
-        </div>
-      </form>
-    </div>
-  </div>
-  <!-- Notification Popup -->
-  <div id="notification-popup" class="hidden fixed top-16 right-6 bg-white shadow-lg rounded-lg p-4 w-72 border border-gray-200 z-50">
-    <h4 class="font-semibold text-gray-800 mb-2">Notifications</h4>
-    <ul class="text-sm text-gray-600 space-y-2">
-      <li>✅ Your post has a new reply</li>
-      <li>📌 New resource added: Housing Guide</li>
-    </ul>
-  </div>
-
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/supabase.min.js"></script>
-<script>
-  // --- Supabase Client ---
-  const supabase = window.supabase.createClient(
-    "YOUR_SUPABASE_URL",
-    "YOUR_SUPABASE_ANON_KEY"
-  );
-
-  let currentSession = null;
-
-  // --- Init ---
-  document.addEventListener("DOMContentLoaded", async () => {
-    const { data: { session }, error } = await supabase.auth.getSession();
-
-    if (error) {
-      console.error("Error fetching session:", error);
-      window.location.href = "index.html";
-      return;
-    }
-
-    if (!session) {
-      window.location.href = "index.html";
-      return;
-    }
-
-    currentSession = session;
-    console.log("Logged in as:", session.user.email);
-
-    // Show "My Posts"
-    document.getElementById("my-posts-btn").classList.remove("hidden");
-
-    // Load posts
-    loadPosts("all");
-  });
-
-  // --- Render a Post ---
-  function renderPost(post) {
-    return `
-      <div class="bg-white rounded-lg shadow-md p-6">
-        <div class="flex justify-between items-center mb-3">
-          <span class="text-sm bg-indigo-100 text-indigo-800 px-2 py-1 rounded-full">${post.category}</span>
-          <span class="text-sm text-gray-500">${new Date(post.created_at).toLocaleString()}</span>
-        </div>
-        <h3 class="text-lg font-semibold mb-2">${post.title}</h3>
-        <p class="text-gray-600 mb-4">${post.content}</p>
-        <div class="flex justify-between items-center">
-          <span class="text-sm text-gray-500">${post.author}</span>
-        </div>
-
-        <!-- Replies -->
-        <div class="mt-4 space-y-2">
-          ${(post.replies || []).map(r => `
-            <div class="bg-gray-50 border-l-4 border-indigo-500 p-2 rounded">
-              <span class="font-semibold">${r.author}:</span> ${r.text}
-            </div>
-          `).join('')}
-        </div>
-
-        <!-- Add Reply -->
-        <form onsubmit="addReply(event, ${post.id})" class="mt-3 flex space-x-2">
-          <input type="text" id="reply-input-${post.id}" placeholder="Write a reply..." 
-            class="flex-1 border rounded-lg px-3 py-1 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-          <button type="submit" class="bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-3 py-1 rounded-lg">Reply</button>
-        </form>
-      </div>
-    `;
-  }
-
-  // --- Load Posts ---
-  async function loadPosts(filter = "all") {
-    try {
-      const res = await fetch("/api/posts", {
-        headers: {
-          "Authorization": `Bearer ${currentSession.access_token}`
-        }
-      });
-      const { posts } = await res.json();
-
-      let filtered = posts;
-      if (filter !== "all" && filter !== "my") {
-        filtered = posts.filter(p => p.category === filter);
+    // ✅ Check login session
+    async function checkAuth() {
+      const { data, error } = await supabaseClient.auth.getSession();
+      currentSession = data?.session;
+      if (!currentSession) {
+        window.location.href = "login.html";
+      } else {
+        loadPosts();
       }
-      if (filter === "my") {
-        filtered = posts.filter(p => p.author === currentSession.user.email);
+    }
+    checkAuth();
+
+    // ✅ Logout
+    async function logout() {
+      await supabaseClient.auth.signOut();
+      window.location.href = "login.html";
+    }
+
+    // ✅ Create Post
+    async function createPost(e) {
+      e.preventDefault();
+      const content = document.getElementById("post-content").value.trim();
+      if (!content) return alert("Post cannot be empty");
+
+      try {
+        const { data, error } = await supabaseClient
+          .from("posts")
+          .insert([{ content, user_id: currentSession.user.id }]);
+
+        if (error) throw error;
+
+        document.getElementById("post-form").reset();
+        loadPosts();
+      } catch (err) {
+        console.error("Network error creating post:", err);
+        alert("Error creating post. Please try again.");
+      }
+    }
+
+    // ✅ Load Posts
+    async function loadPosts() {
+      const { data, error } = await supabaseClient
+        .from("posts")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        console.error("Error loading posts:", error);
+        return;
       }
 
       const container = document.getElementById("posts-container");
-      container.innerHTML = filtered.length
-        ? filtered.map(renderPost).join("")
-        : `<p class="text-gray-500 italic">No posts yet.</p>`;
-    } catch (err) {
-      console.error("Error loading posts:", err);
-    }
-  }
-
-  // --- Add Reply ---
-  async function addReply(event, postId) {
-    event.preventDefault();
-    const input = document.getElementById(`reply-input-${postId}`);
-    const text = input.value.trim();
-    if (!text) return;
-
-    try {
-      await fetch("/api/replies", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${currentSession.access_token}`
-        },
-        body: JSON.stringify({ postId, text })
+      container.innerHTML = "";
+      data.forEach(post => {
+        const postEl = document.createElement("div");
+        postEl.className = "p-4 border rounded-lg shadow-sm";
+        postEl.innerHTML = `
+          <p class="mb-2">${post.content}</p>
+          <span class="text-gray-500 text-sm">${new Date(post.created_at).toLocaleString()}</span>
+        `;
+        container.appendChild(postEl);
       });
-      input.value = "";
-      loadPosts();
-    } catch (err) {
-      console.error("Error adding reply:", err);
     }
-  }
-
-  // --- Create New Post ---
-
-  async function createPost(event) {
-    event.preventDefault();
-    const category = document.getElementById("post-category").value;
-    const title = document.getElementById("post-title").value.trim();
-    const content = document.getElementById("post-content").value.trim();
-  
-    if (!title || !content) {
-      alert("Title and content are required.");
-      return;
-    }
-  
-    try {
-      const res = await fetch("/api/posts", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${currentSession.access_token}`
-        },
-        body: JSON.stringify({ title, content, category })
-      });
-  
-      const data = await res.json();
-  
-      if (!res.ok) {
-        console.error("Error creating post:", data.error || data);
-        alert("Failed to create post: " + (data.error || "Unknown error"));
-        return;
-      }
-  
-      // Success 🎉
-      document.getElementById("post-title").value = "";
-      document.getElementById("post-content").value = "";
-      hideNewPostModal();
-      loadPosts();
-    } catch (err) {
-      console.error("Network error creating post:", err);
-      alert("Network error. Please try again.");
-    }
-  }
-
-
-  // --- Filters ---
-  function filterPosts(category) {
-    loadPosts(category);
-  }
-
-  // --- UI Helpers ---
-  function showNewPostModal() {
-    document.getElementById("new-post-modal").classList.remove("hidden");
-    document.getElementById("new-post-modal").classList.add("flex");
-  }
-  function hideNewPostModal() {
-    document.getElementById("new-post-modal").classList.add("hidden");
-  }
-  function toggleNotifications() {
-    document.getElementById("notification-popup").classList.toggle("hidden");
-  }
-
-  // --- Logout ---
-  async function logout() {
-    await supabase.auth.signOut();
-    window.location.href = "index.html";
-  }
   </script>
-
 </body>
 </html>
