@@ -133,7 +133,7 @@
         </div>
         <div class="flex justify-end space-x-3">
           <button type="button" onclick="hideNewPostModal()" class="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors">Cancel</button>
-          <button type="submit" onclick="createPost()" class="bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-6 py-2 rounded-lg font-semibold hover:opacity-90 transition-opacity">Post</button>
+          <button type="submit" class="bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-6 py-2 rounded-lg font-semibold hover:opacity-90 transition-opacity">Post</button>
         </div>
       </form>
     </div>
@@ -266,14 +266,20 @@
   }
 
   // --- Create New Post ---
+
   async function createPost(event) {
     event.preventDefault();
     const category = document.getElementById("post-category").value;
-    const title = document.getElementById("post-title").value;
-    const content = document.getElementById("post-content").value;
-
+    const title = document.getElementById("post-title").value.trim();
+    const content = document.getElementById("post-content").value.trim();
+  
+    if (!title || !content) {
+      alert("Title and content are required.");
+      return;
+    }
+  
     try {
-      await fetch("/api/posts", {
+      const res = await fetch("/api/posts", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -281,12 +287,26 @@
         },
         body: JSON.stringify({ title, content, category })
       });
+  
+      const data = await res.json();
+  
+      if (!res.ok) {
+        console.error("Error creating post:", data.error || data);
+        alert("Failed to create post: " + (data.error || "Unknown error"));
+        return;
+      }
+  
+      // Success 🎉
+      document.getElementById("post-title").value = "";
+      document.getElementById("post-content").value = "";
       hideNewPostModal();
       loadPosts();
     } catch (err) {
-      console.error("Error creating post:", err);
+      console.error("Network error creating post:", err);
+      alert("Network error. Please try again.");
     }
   }
+
 
   // --- Filters ---
   function filterPosts(category) {
