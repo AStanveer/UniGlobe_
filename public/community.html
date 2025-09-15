@@ -86,12 +86,12 @@
         <div class="bg-white rounded-lg shadow-md p-6">
           <h3 class="font-semibold mb-4">Categories</h3>
           <div class="space-y-2">
-            <button onclick="filterPosts('all')" class="category-btn w-full text-left px-3 py-2 rounded hover:bg-gray-100 transition-colors">All Posts</button>
-            <button onclick="filterPosts('housing')" class="category-btn w-full text-left px-3 py-2 rounded hover:bg-gray-100 transition-colors">🏠 Housing</button>
-            <button onclick="filterPosts('visa')" class="category-btn w-full text-left px-3 py-2 rounded hover:bg-gray-100 transition-colors">📋 Visa & Legal</button>
-            <button onclick="filterPosts('social')" class="category-btn w-full text-left px-3 py-2 rounded hover:bg-gray-100 transition-colors">🎉 Social & Events</button>
-            <button onclick="filterPosts('academic')" class="category-btn w-full text-left px-3 py-2 rounded hover:bg-gray-100 transition-colors">📖 Academic</button>
-            <button onclick="filterPosts('general')" class="category-btn w-full text-left px-3 py-2 rounded hover:bg-gray-100 transition-colors">💬 General</button>
+            <button onclick="filterPosts('all',event)" class="category-btn w-full text-left px-3 py-2 rounded hover:bg-gray-100 transition-colors">All Posts</button>
+            <button onclick="filterPosts('housing',event)" class="category-btn w-full text-left px-3 py-2 rounded hover:bg-gray-100 transition-colors">🏠 Housing</button>
+            <button onclick="filterPosts('visa',event)" class="category-btn w-full text-left px-3 py-2 rounded hover:bg-gray-100 transition-colors">📋 Visa & Legal</button>
+            <button onclick="filterPosts('social',event)" class="category-btn w-full text-left px-3 py-2 rounded hover:bg-gray-100 transition-colors">🎉 Social & Events</button>
+            <button onclick="filterPosts('academic',event)" class="category-btn w-full text-left px-3 py-2 rounded hover:bg-gray-100 transition-colors">📖 Academic</button>
+            <button onclick="filterPosts('general',event)" class="category-btn w-full text-left px-3 py-2 rounded hover:bg-gray-100 transition-colors">💬 General</button>
             
             <!-- My Posts (only visible when logged in) -->
             <div id="my-posts-btn" class="hidden">
@@ -147,191 +147,403 @@
     </ul>
   </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/supabase.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/supabase.min.js">
+  const supabase = supabase.createClient(
+  "https://bshfxwbxtitdpxdvtguz.supabase.co",
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJzaGZ4d2J4dGl0ZHB4ZHZ0Z3V6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc2MjEwOTIsImV4cCI6MjA3MzE5NzA5Mn0.4oJ-K75YuRTsp9PZE5V-zq49NNBD0p-zygP-8QVan84"
+);
+</script>
+  
+
 <script>
-  // --- Supabase Client ---
-  const supabase = window.supabase.createClient(
-   https://bshfxwbxtitdpxdvtguz.supabase.co,
-   eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJzaGZ4d2J4dGl0ZHB4ZHZ0Z3V6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc2MjEwOTIsImV4cCI6MjA3MzE5NzA5Mn0.4oJ-K75YuRTsp9PZE5V-zq49NNBD0p-zygP-8QVan84
+  // --- Application State ---
+  let currentUser = null;
+  let allPosts = [];
+  let currentFilter = 'all';
 
-  );
+  // --- Mock Data (since backend APIs don't exist) ---
+  const mockPosts = [
+    {
+      id: 1,
+      title: "Looking for roommate in downtown area",
+      content: "Hi everyone! I'm searching for a roommate to share a 2BR apartment near the university. Clean, quiet, and responsible person preferred.",
+      category: "housing",
+      author: "john.doe@email.com",
+      created_at: new Date(Date.now() - 86400000).toISOString(), // 1 day ago
+      replies: [
+        { author: "jane.smith@email.com", text: "I might be interested! Can you share more details?" }
+      ]
+    },
+    {
+      id: 2,
+      title: "Student visa extension process",
+      content: "Has anyone recently gone through the visa extension process? Looking for tips and timeline expectations.",
+      category: "visa",
+      author: "student123@email.com",
+      created_at: new Date(Date.now() - 172800000).toISOString(), // 2 days ago
+      replies: []
+    },
+    {
+      id: 3,
+      title: "Weekend hiking group",
+      content: "Starting a weekend hiking group for international students. All skill levels welcome!",
+      category: "social",
+      author: "outdoorlover@email.com",
+      created_at: new Date(Date.now() - 259200000).toISOString(), // 3 days ago
+      replies: [
+        { author: "hiker99@email.com", text: "Count me in! What time do you usually start?" },
+        { author: "naturefan@email.com", text: "This sounds great! I'm new to the area." }
+      ]
+    }
+  ];
 
-  let currentSession = null;
-
-  // --- Init ---
+  // --- Initialization ---
   document.addEventListener("DOMContentLoaded", async () => {
-    const { data: { session }, error } = await supabase.auth.getSession();
-
-    if (error) {
-      console.error("Error fetching session:", error);
-      window.location.href = "index.html";
-      return;
+    // Simulate authentication check
+    try {
+      // In a real app, this would check with your backend/Supabase
+      currentUser = {
+        email: "demo@uniglobe.com",
+        id: "demo-user"
+      };
+      
+      console.log("Logged in as:", currentUser.email);
+      
+      // Show "My Posts" button
+      document.getElementById("my-posts-btn").classList.remove("hidden");
+      
+      // Load initial posts
+      loadPosts();
+      
+    } catch (error) {
+      console.error("Authentication error:", error);
+      // In a real app, redirect to login
+      // window.location.href = "index.html";
     }
-
-    if (!session) {
-      window.location.href = "index.html";
-      return;
-    }
-
-    currentSession = session;
-    console.log("Logged in as:", session.user.email);
-
-    // Show "My Posts"
-    document.getElementById("my-posts-btn").classList.remove("hidden");
-
-    // Load posts
-    loadPosts("all");
   });
 
-  // --- Render a Post ---
-  function renderPost(post) {
-    return `
-      <div class="bg-white rounded-lg shadow-md p-6">
-        <div class="flex justify-between items-center mb-3">
-          <span class="text-sm bg-indigo-100 text-indigo-800 px-2 py-1 rounded-full">${post.category}</span>
-          <span class="text-sm text-gray-500">${new Date(post.created_at).toLocaleString()}</span>
+  // --- Post Management ---
+  function loadPosts(filter = 'all') {
+    try {
+      currentFilter = filter;
+      let filteredPosts = [...mockPosts, ...allPosts];
+      
+      // Apply filter
+      switch (filter) {
+        case 'my':
+          filteredPosts = filteredPosts.filter(post => post.author === currentUser?.email);
+          break;
+        case 'all':
+          // Show all posts
+          break;
+        default:
+          filteredPosts = filteredPosts.filter(post => post.category === filter);
+      }
+      
+      // Sort by creation date (newest first)
+      filteredPosts.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+      
+      renderPosts(filteredPosts);
+      
+    } catch (error) {
+      console.error("Error loading posts:", error);
+      showError("Failed to load posts");
+    }
+  }
+
+  function renderPosts(posts) {
+    const container = document.getElementById("posts-container");
+    
+    if (posts.length === 0) {
+      container.innerHTML = `
+        <div class="text-center py-8">
+          <p class="text-gray-500 italic text-lg">No posts found for this category.</p>
+          <p class="text-gray-400 text-sm mt-2">Be the first to start a conversation!</p>
         </div>
-        <h3 class="text-lg font-semibold mb-2">${post.title}</h3>
-        <p class="text-gray-600 mb-4">${post.content}</p>
-        <div class="flex justify-between items-center">
-          <span class="text-sm text-gray-500">${post.author}</span>
+      `;
+      return;
+    }
+    
+    container.innerHTML = posts.map(renderPost).join("");
+  }
+
+  function renderPost(post) {
+    const categoryEmoji = {
+      'housing': '🏠',
+      'visa': '📋',
+      'social': '🎉',
+      'academic': '📖',
+      'general': '💬'
+    };
+    
+    return `
+      <div class="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
+        <div class="flex justify-between items-center mb-3">
+          <span class="text-sm bg-indigo-100 text-indigo-800 px-3 py-1 rounded-full font-medium">
+            ${categoryEmoji[post.category] || '💬'} ${post.category.charAt(0).toUpperCase() + post.category.slice(1)}
+          </span>
+          <span class="text-sm text-gray-500">${formatDate(post.created_at)}</span>
+        </div>
+        
+        <h3 class="text-lg font-semibold mb-2 text-gray-900">${escapeHtml(post.title)}</h3>
+        <p class="text-gray-600 mb-4 leading-relaxed">${escapeHtml(post.content)}</p>
+        
+        <div class="flex justify-between items-center mb-4">
+          <span class="text-sm text-gray-500">By: ${post.author}</span>
+          <span class="text-sm text-gray-400">${post.replies?.length || 0} replies</span>
         </div>
 
-        <!-- Replies -->
-        <div class="mt-4 space-y-2">
-          ${(post.replies || []).map(r => `
-            <div class="bg-gray-50 border-l-4 border-indigo-500 p-2 rounded">
-              <span class="font-semibold">${r.author}:</span> ${r.text}
+        <!-- Replies Section -->
+        <div class="space-y-2 mb-4">
+          ${(post.replies || []).map(reply => `
+            <div class="bg-gray-50 border-l-4 border-indigo-500 p-3 rounded-r-lg">
+              <div class="flex justify-between items-start">
+                <span class="font-semibold text-indigo-700 text-sm">${reply.author}</span>
+                <span class="text-xs text-gray-400">${reply.timestamp || 'just now'}</span>
+              </div>
+              <p class="text-gray-700 mt-1">${escapeHtml(reply.text)}</p>
             </div>
           `).join('')}
         </div>
 
-        <!-- Add Reply -->
-        <form onsubmit="addReply(event, ${post.id})" class="mt-3 flex space-x-2">
-          <input type="text" id="reply-input-${post.id}" placeholder="Write a reply..." 
-            class="flex-1 border rounded-lg px-3 py-1 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-          <button type="submit" class="bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-3 py-1 rounded-lg">Reply</button>
+        <!-- Reply Form -->
+        <form onsubmit="addReply(event, ${post.id})" class="flex space-x-2">
+          <input 
+            type="text" 
+            id="reply-input-${post.id}" 
+            placeholder="Write a reply..." 
+            class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+            required
+          >
+          <button 
+            type="submit" 
+            class="bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:opacity-90 transition-opacity"
+          >
+            Reply
+          </button>
         </form>
       </div>
     `;
   }
 
-  // --- Load Posts ---
-  async function loadPosts(filter = "all") {
+  // --- Create New Post ---
+  async function createPost(event) {
+    event.preventDefault();
+    
+    if (!currentUser) {
+      showError("You must be logged in to create a post");
+      return;
+    }
+    
+    const category = document.getElementById("post-category").value;
+    const title = document.getElementById("post-title").value.trim();
+    const content = document.getElementById("post-content").value.trim();
+    
+    if (!title || !content) {
+      showError("Title and content are required");
+      return;
+    }
+    
     try {
-      const res = await fetch("/api/posts", {
-        headers: {
-          "Authorization": `Bearer ${currentSession.access_token}`
-        }
-      });
-      const { posts } = await res.json();
-
-      let filtered = posts;
-      if (filter !== "all" && filter !== "my") {
-        filtered = posts.filter(p => p.category === filter);
-      }
-      if (filter === "my") {
-        filtered = posts.filter(p => p.author === currentSession.user.email);
-      }
-
-      const container = document.getElementById("posts-container");
-      container.innerHTML = filtered.length
-        ? filtered.map(renderPost).join("")
-        : `<p class="text-gray-500 italic">No posts yet.</p>`;
-    } catch (err) {
-      console.error("Error loading posts:", err);
+      // Create new post object
+      const newPost = {
+        id: Date.now(), // Simple ID generation
+        title,
+        content,
+        category,
+        author: currentUser.email,
+        created_at: new Date().toISOString(),
+        replies: []
+      };
+      
+      // Add to posts array
+      allPosts.unshift(newPost); // Add to beginning
+      
+      // Clear form and close modal
+      document.getElementById("post-title").value = "";
+      document.getElementById("post-content").value = "";
+      document.getElementById("post-category").value = "general";
+      hideNewPostModal();
+      
+      // Reload posts with current filter
+      loadPosts(currentFilter);
+      
+      showSuccess("Post created successfully!");
+      
+    } catch (error) {
+      console.error("Error creating post:", error);
+      showError("Failed to create post. Please try again.");
     }
   }
 
   // --- Add Reply ---
   async function addReply(event, postId) {
     event.preventDefault();
-    const input = document.getElementById(`reply-input-${postId}`);
-    const text = input.value.trim();
-    if (!text) return;
-
-    try {
-      await fetch("/api/replies", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${currentSession.access_token}`
-        },
-        body: JSON.stringify({ postId, text })
-      });
-      input.value = "";
-      loadPosts();
-    } catch (err) {
-      console.error("Error adding reply:", err);
-    }
-  }
-
-  // --- Create New Post ---
-
-  async function createPost(event) {
-    event.preventDefault();
-    const category = document.getElementById("post-category").value;
-    const title = document.getElementById("post-title").value.trim();
-    const content = document.getElementById("post-content").value.trim();
-  
-    if (!title || !content) {
-      alert("Title and content are required.");
+    
+    if (!currentUser) {
+      showError("You must be logged in to reply");
       return;
     }
-  
+    
+    const input = document.getElementById(`reply-input-${postId}`);
+    const text = input.value.trim();
+    
+    if (!text) return;
+    
     try {
-      const res = await fetch("/api/posts", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${currentSession.access_token}`
-        },
-        body: JSON.stringify({ title, content, category })
-      });
-  
-      const data = await res.json();
-  
-      if (!res.ok) {
-        console.error("Error creating post:", data.error || data);
-        alert("Failed to create post: " + (data.error || "Unknown error"));
-        return;
+      // Find the post and add reply
+      const postIndex = allPosts.findIndex(p => p.id === postId);
+      let targetPost = null;
+      
+      if (postIndex !== -1) {
+        targetPost = allPosts[postIndex];
+      } else {
+        // Check mock posts
+        targetPost = mockPosts.find(p => p.id === postId);
       }
-  
-      // Success 🎉
-      document.getElementById("post-title").value = "";
-      document.getElementById("post-content").value = "";
-      hideNewPostModal();
-      loadPosts();
-    } catch (err) {
-      console.error("Network error creating post:", err);
-      alert("Network error. Please try again.");
+      
+      if (targetPost) {
+        const newReply = {
+          author: currentUser.email,
+          text,
+          timestamp: new Date().toLocaleTimeString()
+        };
+        
+        if (!targetPost.replies) {
+          targetPost.replies = [];
+        }
+        
+        targetPost.replies.push(newReply);
+        input.value = "";
+        loadPosts(currentFilter);
+        showSuccess("Reply added!");
+      }
+      
+    } catch (error) {
+      console.error("Error adding reply:", error);
+      showError("Failed to add reply. Please try again.");
     }
   }
 
-
-  // --- Filters ---
-  function filterPosts(category) {
+  // --- Filter Functions ---
+  function filterPosts(category,event) {
+    // Update active button state
+    document.querySelectorAll('.category-btn').forEach(btn => {
+      btn.classList.remove('bg-indigo-100', 'text-indigo-800');
+    });
+    
+    event.target.classList.add('bg-indigo-100', 'text-indigo-800');
+    
     loadPosts(category);
   }
 
-  // --- UI Helpers ---
+  // --- Modal Functions ---
   function showNewPostModal() {
-    document.getElementById("new-post-modal").classList.remove("hidden");
-    document.getElementById("new-post-modal").classList.add("flex");
-  }
-  function hideNewPostModal() {
-    document.getElementById("new-post-modal").classList.add("hidden");
-  }
-  function toggleNotifications() {
-    document.getElementById("notification-popup").classList.toggle("hidden");
+    const modal = document.getElementById("new-post-modal");
+    modal.classList.remove("hidden");
+    modal.classList.add("flex");
+    
+    // Focus on title input
+    setTimeout(() => {
+      document.getElementById("post-title").focus();
+    }, 100);
   }
 
-  // --- Logout ---
-  async function logout() {
-    await supabase.auth.signOut();
-    window.location.href = "index.html";
+  function hideNewPostModal() {
+    const modal = document.getElementById("new-post-modal");
+    modal.classList.add("hidden");
+    modal.classList.remove("flex");
   }
-  </script>
+
+  // --- Utility Functions ---
+  function toggleNotifications() {
+    const popup = document.getElementById("notification-popup");
+    popup.classList.toggle("hidden");
+  }
+
+  function formatDate(dateString) {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffTime = Math.abs(now - date);
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays === 1) return "1 day ago";
+    if (diffDays < 7) return `${diffDays} days ago`;
+    
+    return date.toLocaleDateString();
+  }
+
+  function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
+  function showError(message) {
+    // Simple error notification
+    const errorDiv = document.createElement('div');
+    errorDiv.className = 'fixed top-4 right-4 bg-red-500 text-white px-4 py-2 rounded-lg shadow-lg z-50';
+    errorDiv.textContent = message;
+    document.body.appendChild(errorDiv);
+    
+    setTimeout(() => {
+      errorDiv.remove();
+    }, 3000);
+  }
+
+  function showSuccess(message) {
+    // Simple success notification
+    const successDiv = document.createElement('div');
+    successDiv.className = 'fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg z-50';
+    successDiv.textContent = message;
+    document.body.appendChild(successDiv);
+    
+    setTimeout(() => {
+      successDiv.remove();
+    }, 3000);
+  }
+
+  function showLoading(show) {
+    const container = document.getElementById("posts-container");
+    if (show) {
+      container.innerHTML = `
+        <div class="flex justify-center items-center py-8">
+          <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-500"></div>
+          <span class="ml-2 text-gray-600">Loading...</span>
+        </div>
+      `;
+    }
+  }
+
+  // --- Logout Function ---
+  async function logout() {
+    try {
+      await supabase.auth.signOut();
+      currentUser = null;
+      console.log("Logged out");
+      // window.location.href = "index.html";
+      showSuccess("Logged out successfully!");
+    } catch (error) {
+      console.error("Logout error:", error);
+      showError("Logout failed. Please try again.");
+    }
+  }
+
+
+  // --- Close modals when clicking outside ---
+  document.addEventListener('click', (event) => {
+    const modal = document.getElementById('new-post-modal');
+    const notification = document.getElementById('notification-popup');
+    
+    if (event.target === modal) {
+      hideNewPostModal();
+    }
+    
+    if (!event.target.closest('#notification-popup') && !event.target.closest('button[onclick="toggleNotifications()"]')) {
+      notification.classList.add('hidden');
+    }
+  });
+</script>
 
 </body>
 </html>
