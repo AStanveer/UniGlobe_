@@ -27,36 +27,30 @@
     </p>
   </div>
 
-  <script>
-    document.getElementById("loginForm").addEventListener("submit", async (e) => {
-      e.preventDefault();
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  const supabase = window.supabase.createClient(
+    "https://bshfxwbxtitdpxdvtguz.supabase.co",
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJzaGZ4d2J4dGl0ZHB4ZHZ0Z3V6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc2MjEwOTIsImV4cCI6MjA3MzE5NzA5Mn0.4oJ-K75YuRTsp9PZE5V-zq49NNBD0p-zygP-8QVan84"
+  );
 
-      const email = document.getElementById("email").value;
-      const password = document.getElementById("password").value;
+  document.getElementById("loginForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
 
-      try {
-        const res = await fetch("/api/login", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, password })
-        });
+    const email = document.getElementById("email").value;
+    const password = document.getElementById("password").value;
 
-        const data = await res.json();
-        if (res.ok) {
-          // Save session to localStorage
-          localStorage.setItem("loggedIn", "true");
-          localStorage.setItem("user", JSON.stringify(data.user));
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
-          alert("Login successful!");
-          window.location.href = "home.html";
-        } else {
-          alert("Error: " + data.error);
-        }
-      } catch (err) {
-        console.error(err);
-        alert("Something went wrong.");
-      }
-    });
+    if (error) {
+      alert("Error: " + error.message);
+    } else {
+      alert("Login successful!");
+      window.location.href = "home.html"; 
+    }
+  });
+</script>
+
   </script>
 </body>
 </html>
