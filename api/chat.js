@@ -20,7 +20,14 @@ function findRelevantAnswer(userMessage) {
 }
 
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY);
-const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+const model = genAI.getGenerativeModel({
+  model: "gemini-2.5-flash",
+  systemInstruction: {
+    role: "system",
+    parts: [{ text: "You are UniGlobe assistant. Always answer as a helpful guide for international students, focusing on visa, housing, mental health, and academic support. Maintain a friendly tone and assure the students to feel at ease. Do not give false information and only respond with proven or reliable resources" }]
+  }
+});
+
 
 module.exports = async (req, res) => {
   try {
