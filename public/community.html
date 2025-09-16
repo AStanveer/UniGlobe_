@@ -163,41 +163,6 @@
   let allPosts = [];
   let currentFilter = 'all';
 
-  // --- Mock Data (since backend APIs don't exist) ---
-  const mockPosts = [
-    {
-      id: 1,
-      title: "Looking for roommate in downtown area",
-      content: "Hi everyone! I'm searching for a roommate to share a 2BR apartment near the university. Clean, quiet, and responsible person preferred.",
-      category: "housing",
-      author: "john.doe@email.com",
-      created_at: new Date(Date.now() - 86400000).toISOString(), // 1 day ago
-      replies: [
-        { author: "jane.smith@email.com", text: "I might be interested! Can you share more details?" }
-      ]
-    },
-    {
-      id: 2,
-      title: "Student visa extension process",
-      content: "Has anyone recently gone through the visa extension process? Looking for tips and timeline expectations.",
-      category: "visa",
-      author: "student123@email.com",
-      created_at: new Date(Date.now() - 172800000).toISOString(), // 2 days ago
-      replies: []
-    },
-    {
-      id: 3,
-      title: "Weekend hiking group",
-      content: "Starting a weekend hiking group for international students. All skill levels welcome!",
-      category: "social",
-      author: "outdoorlover@email.com",
-      created_at: new Date(Date.now() - 259200000).toISOString(), // 3 days ago
-      replies: [
-        { author: "hiker99@email.com", text: "Count me in! What time do you usually start?" },
-        { author: "naturefan@email.com", text: "This sounds great! I'm new to the area." }
-      ]
-    }
-  ];
 
   // --- Initialization ---
   document.addEventListener("DOMContentLoaded", async () => {
@@ -221,34 +186,29 @@
 
 
   // --- Post Management ---
-  function loadPosts(filter = 'all') {
-    try {
-      currentFilter = filter;
-      let filteredPosts = [...mockPosts, ...allPosts];
-      
-      // Apply filter
-      switch (filter) {
-        case 'my':
-          filteredPosts = filteredPosts.filter(post => post.author === currentUser?.email);
-          break;
-        case 'all':
-          // Show all posts
-          break;
-        default:
-          filteredPosts = filteredPosts.filter(post => post.category === filter);
-      }
-      
-      // Sort by creation date (newest first)
-      filteredPosts.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-      
-      renderPosts(filteredPosts);
-      
-    } catch (error) {
-      console.error("Error loading posts:", error);
-      showError("Failed to load posts");
-    }
-  }
+  async function loadPosts(filter = "all") {
+  try {
+    showLoading(true);
 
+    let query = supabase.from("posts").select("*").order("created_at", { ascending: false });
+
+    if (filter === "my") {
+      query = query.eq("author", currentUser?.email);
+    } else if (filter !== "all") {
+      query = query.eq("category", filter);
+    }
+
+    const { data, error } = await query;
+
+    if (error) throw error;
+
+    renderPosts(data);
+  } catch (err) {
+    console.error("Error loading posts:", err.message);
+    showError("Failed to load posts");
+  }
+}        
+  
   function renderPosts(posts) {
     const container = document.getElementById("posts-container");
     
@@ -326,53 +286,52 @@
 
   // --- Create New Post ---
   async function createPost(event) {
-    event.preventDefault();
-    
-    if (!currentUser) {
-      showError("You must be logged in to create a post");
-      return;
-    }
-    
-    const category = document.getElementById("post-category").value;
-    const title = document.getElementById("post-title").value.trim();
-    const content = document.getElementById("post-content").value.trim();
-    
-    if (!title || !content) {
-      showError("Title and content are required");
-      return;
-    }
-    
-    try {
-      // Create new post object
-      const newPost = {
-        id: Date.now(), // Simple ID generation
-        title,
-        content,
-        category,
-        author: currentUser.email,
-        created_at: new Date().toISOString(),
-        replies: []
-      };
-      
-      // Add to posts array
-      allPosts.unshift(newPost); // Add to beginning
-      
-      // Clear form and close modal
-      document.getElementById("post-title").value = "";
-      document.getElementById("post-content").value = "";
-      document.getElementById("post-category").value = "general";
-      hideNewPostModal();
-      
-      // Reload posts with current filter
-      loadPosts(currentFilter);
-      
-      showSuccess("Post created successfully!");
-      
-    } catch (error) {
-      console.error("Error creating post:", error);
-      showError("Failed to create post. Please try again.");
-    }
+  event.preventDefault();
+
+  if (!currentUser) {
+    showError("You must be logged in to create a post");
+    return;
   }
+
+  const category = document.getElementById("post-category").value;
+  const title = document.getElementById("post-title").value.trim();
+  const content = document.getElementById("post-content").value.trim();
+
+  if (!title || !content) {
+    showError("Title and content are required");
+    return;
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from("posts") // table name
+      .insert([
+        {
+          title,
+          content,
+          category,
+          author: currentUser.email,
+          created_at: new Date().toISOString(),
+        },
+      ])
+      .select();
+
+    if (error) throw error;
+
+    // Clear form and close modal
+    document.getElementById("post-title").value = "";
+    document.getElementById("post-content").value = "";
+    document.getElementById("post-category").value = "general";
+    hideNewPostModal();
+
+    // Add to UI
+    loadPosts(currentFilter);
+    showSuccess("Post created successfully!");
+  } catch (err) {
+    console.error("Error creating post:", err.message);
+    showError("Failed to create post. Please try again.");
+  }
+}
 
   // --- Add Reply ---
   async function addReply(event, postId) {
