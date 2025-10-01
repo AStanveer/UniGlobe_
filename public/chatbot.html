@@ -164,16 +164,6 @@
             class="chat-input flex-1"/>
           <button id="send-btn" class="send-btn font-semibold">Send</button>
         </div>
-        <div class="mt-3 flex flex-wrap gap-2">
-          <button class="text-xs px-3 py-1 rounded-full border border-gray-300 hover:bg-gray-100"
-            onclick="quickAsk('What documents do I need for a student visa to Germany?')">Visa docs (DE)</button>
-          <button class="text-xs px-3 py-1 rounded-full border border-gray-300 hover:bg-gray-100"
-            onclick="quickAsk('How can I find affordable student housing near ITMO?')">Housing (ITMO)</button>
-          <button class="text-xs px-3 py-1 rounded-full border border-gray-300 hover:bg-gray-100"
-            onclick="quickAsk('What are typical monthly expenses for students in St. Petersburg?')">Budget (RU)</button>
-          <button class="text-xs px-3 py-1 rounded-full border border-gray-300 hover:bg-gray-100"
-            onclick="quickAsk('Tips to adapt to classes and grading in Ecuador?')">Academics (EC)</button>
-        </div>
       </div>
     </section>
   </main>
@@ -187,37 +177,24 @@
     </ul>
   </div>
 
+   <!-- Add Supabase client -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
   <script>
-      // --- Application State ---
-  let currentUser = null;
-  let allPosts = [];
-  let currentFilter = 'all';
+    // --- Supabase Setup ---
+    const supabaseUrl = "https://bshfxwbxtitdpxdvtguz.supabase.co";  
+    const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJzaGZ4d2J4dGl0ZHB4ZHZ0Z3V6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc2MjEwOTIsImV4cCI6MjA3MzE5NzA5Mn0.4oJ-K75YuRTsp9PZE5V-zq49NNBD0p-zygP-8QVan84";                       
+    const supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
+    // --- Application State ---
+    let currentUser = null;
 
-  // --- Initialization ---
-  document.addEventListener("DOMContentLoaded", async () => {
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-  
-      if (session?.user) {
-        currentUser = session.user;
-        console.log("Logged in as:", currentUser.email);
-  
-        document.getElementById("my-posts-btn").classList.remove("hidden");
-        loadPosts();
-      } else {
-        console.warn("No active session found. Redirecting to login.");
-        // window.location.href = "index.html";
-      }
-    } catch (error) {
-      console.error("Authentication error:", error);
-    }
-  });
-    
+    // --- DOM Elements ---
     const messagesEl = document.getElementById('chat-messages');
     const inputEl = document.getElementById('chat-input');
     const sendBtn = document.getElementById('send-btn');
 
+    // --- Message Rendering ---
     function addUserMessage(text) {
       const wrap = document.createElement('div');
       wrap.className = 'flex justify-end';
@@ -238,13 +215,14 @@
       messagesEl.scrollTop = messagesEl.scrollHeight;
     }
 
+    // --- Chat Sending ---
     async function sendMessage() {
       const text = inputEl.value.trim();
       if (!text) return;
       addUserMessage(text);
       inputEl.value = "";
 
-      // Bot typing indicator
+      // typing indicator
       const typingEl = document.createElement('div');
       typingEl.className = 'flex justify-start';
       typingEl.innerHTML = `<div class="bubble-bot max-w-[75%]">...</div>`;
@@ -257,30 +235,46 @@
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ message: text })
         });
-        const data = await res.json();
+
+        let data;
+        try {
+          data = await res.json();
+        } catch (err) {
+          throw new Error("Server did not return valid JSON");
+        }
+
         typingEl.remove();
         addBotMessage(data.reply || "⚠️ No reply from server.");
       } catch (err) {
         typingEl.remove();
         addBotMessage("⚠️ Error connecting to server.");
-        console.error(err);
+        console.error("Chat error:", err);
       }
     }
 
-    inputEl.addEventListener('keydown', e => { if (e.key === 'Enter') sendMessage(); });
+    // --- Event Bindings ---
     sendBtn.addEventListener('click', sendMessage);
+    inputEl.addEventListener('keydown', e => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        sendMessage();
+      }
+    });
 
+    // --- Auth Check ---
     document.addEventListener("DOMContentLoaded", async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.user) {
         window.location.href = "index.html";
+      } else {
+        currentUser = session.user;
+        console.log("Logged in as:", currentUser.email);
       }
     });
-    
+
     async function logout() {
       await supabase.auth.signOut();
       window.location.href = "index.html";
-    }
     }
   </script>
 </body>
