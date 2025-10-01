@@ -123,8 +123,44 @@
       <li>📌 New resource added: Housing Guide</li>
     </ul>
   </div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-  <script>
+<script>
+  const supabase = window.supabase.createClient(
+  "https://bshfxwbxtitdpxdvtguz.supabase.co",
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJzaGZ4d2J4dGl0ZHB4ZHZ0Z3V6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc2MjEwOTIsImV4cCI6MjA3MzE5NzA5Mn0.4oJ-K75YuRTsp9PZE5V-zq49NNBD0p-zygP-8QVan84"
+);
+</script>
+  
+
+<script>
+    // --- Application State ---
+    let currentUser = null;
+    let allPosts = [];
+    let currentFilter = 'all';
+  
+  
+    // --- Initialization ---
+    document.addEventListener("DOMContentLoaded", async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+    
+        if (session?.user) {
+          currentUser = session.user;
+          console.log("Logged in as:", currentUser.email);
+    
+          document.getElementById("my-posts-btn").classList.remove("hidden");
+          loadPosts();
+        } else {
+          console.warn("No active session found. Redirecting to login.");
+          // window.location.href = "index.html";
+        }
+      } catch (error) {
+        console.error("Authentication error:", error);
+      }
+    });
+
+
     function toggleNotifications() {
       const popup = document.getElementById("notification-popup");
       popup.classList.toggle("hidden");
