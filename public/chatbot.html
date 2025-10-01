@@ -188,6 +188,32 @@
   </div>
 
   <script>
+      // --- Application State ---
+  let currentUser = null;
+  let allPosts = [];
+  let currentFilter = 'all';
+
+
+  // --- Initialization ---
+  document.addEventListener("DOMContentLoaded", async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+  
+      if (session?.user) {
+        currentUser = session.user;
+        console.log("Logged in as:", currentUser.email);
+  
+        document.getElementById("my-posts-btn").classList.remove("hidden");
+        loadPosts();
+      } else {
+        console.warn("No active session found. Redirecting to login.");
+        // window.location.href = "index.html";
+      }
+    } catch (error) {
+      console.error("Authentication error:", error);
+    }
+  });
+    
     const messagesEl = document.getElementById('chat-messages');
     const inputEl = document.getElementById('chat-input');
     const sendBtn = document.getElementById('send-btn');
