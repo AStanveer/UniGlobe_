@@ -222,6 +222,8 @@
       addUserMessage(text);
       inputEl.value = "";
 
+      console.log("Send button clicked, sending:", text);
+
       // typing indicator
       const typingEl = document.createElement('div');
       typingEl.className = 'flex justify-start';
