@@ -166,15 +166,19 @@
       popup.classList.toggle("hidden");
     }
 
-    document.addEventListener("DOMContentLoaded", () => {
-      const loggedIn = localStorage.getItem("loggedIn");
-      if (!loggedIn) {
+   // --- Auth Check ---
+    document.addEventListener("DOMContentLoaded", async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) {
         window.location.href = "index.html";
+      } else {
+        currentUser = session.user;
+        console.log("Logged in as:", currentUser.email);
       }
     });
-  
-    function logout() {
-      localStorage.removeItem("loggedIn");
+
+    async function logout() {
+      await supabase.auth.signOut();
       window.location.href = "index.html";
     }
   </script>
