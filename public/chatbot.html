@@ -270,15 +270,17 @@
     inputEl.addEventListener('keydown', e => { if (e.key === 'Enter') sendMessage(); });
     sendBtn.addEventListener('click', sendMessage);
 
-    document.addEventListener("DOMContentLoaded", () => {
-      if (!localStorage.getItem("loggedIn")) {
+    document.addEventListener("DOMContentLoaded", async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) {
         window.location.href = "index.html";
       }
     });
-
-    function logout() {
-      localStorage.removeItem("loggedIn");
+    
+    async function logout() {
+      await supabase.auth.signOut();
       window.location.href = "index.html";
+    }
     }
   </script>
 </body>
