@@ -184,7 +184,7 @@
     // --- Supabase Setup ---
     const supabaseUrl = "https://bshfxwbxtitdpxdvtguz.supabase.co";  
     const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJzaGZ4d2J4dGl0ZHB4ZHZ0Z3V6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc2MjEwOTIsImV4cCI6MjA3MzE5NzA5Mn0.4oJ-K75YuRTsp9PZE5V-zq49NNBD0p-zygP-8QVan84";                       
-    const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+    const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
 
     // --- Application State ---
     let currentUser = null;
